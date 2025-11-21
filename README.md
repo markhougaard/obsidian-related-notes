@@ -9,9 +9,10 @@ My goal was to try [Antigravity](https://antigravity.google) to see what it can 
 
 The plugin comes with no warranty or support. Use at your own risk. It shouldn't delete your Obsidian vault or mine bitcoin or anything else, but who knows if Gemini went rogue. I may wind up abandoning this plugin. Or I may actively develop it. Who knows?
 
+I've [recorded a quick video tour of the plugin](https://yuja.ucalgary.ca/v/obsidian-related-notes).
+
 \- D
 
-![video tour](https://yuja.ucalgary.ca/V/Video?v=1251014&node=7122339&a=34812717&preload=false)
 
 And now, back to the AI-generated content…
 
