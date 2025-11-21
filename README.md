@@ -1,5 +1,20 @@
 # Obsidian Related Notes
 
+## About the plugin
+
+First, a note from the actual human that vibecoded this AI-powered and AI-authored experiment:
+This is an AI-generated plugin, using Google's Antigravity framework. I have no idea how the LLM vectors are calculated or used to find relevant notes. It seems to work really well for me.
+
+My goal was to try Antimatter to see what it can do. It's simultaneously AMAZING and FRUSTRATING. But it built this thing, and I could never have done that on my own. I've been wanting a good Related Notes plugin for my Obsidian vault for years, and I finally caved in and built this.
+
+The plugin comes with no warranty or support. Use at your own risk. It shouldn't delete your Obsidian vault or mine bitcoin or anything else, but who knows if Gemini went rogue. I may wind up abandoning this plugin. Or I may actively develop it. Who knows?
+
+\- D
+
+And now, back to the AI-generated content…
+
+
+
 A powerful Obsidian plugin that uses local AI to find and display notes semantically related to your current active note. Unlike simple tag or link matching, this plugin uses vector embeddings to understand the *meaning* of your notes.
 
 ## Features
@@ -27,7 +42,7 @@ A powerful Obsidian plugin that uses local AI to find and display notes semantic
 ### Manual Installation
 
 1.  Create a folder named `obsidian-related-notes` inside your vault's `.obsidian/plugins/` directory.
-2.  Download `main.js` and `manifest.json` from the [Latest Release](https://github.com/yourusername/obsidian-related-notes/releases/latest).
+2.  Download `main.js` and `manifest.json` from the [`dist`](/dist) directory in this repository.
 3.  Place the downloaded files into the folder you created.
 4.  Reload Obsidian (or click "Reload plugins" in Settings).
 5.  Enable "Related Notes" in **Settings > Community Plugins**.

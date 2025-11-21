@@ -2,10 +2,8 @@
 node_modules/
 
 # Build outputs
-main.js
-main.js
+/main.js
 *.js.map
-dist/
 
 # IDE
 .vscode/
