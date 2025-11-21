@@ -11,6 +11,8 @@ The plugin comes with no warranty or support. Use at your own risk. It shouldn't
 
 \- D
 
+<iframe title='Embedded Media titled: A quick tour of the Obsidian Related Notes (AI) plugin' aria-label='Embedded Media titled: A quick tour of the Obsidian Related Notes (AI) plugin' width="560"  height="315"  src="https://yuja.ucalgary.ca/V/Video?v=1251014&node=7122339&a=34812717&preload=false" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen loading="lazy"></iframe>
+
 And now, back to the AI-generated content…
 
 
