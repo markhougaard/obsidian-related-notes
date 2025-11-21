@@ -3,9 +3,9 @@
 ## About the plugin
 
 First, a note from the actual human that vibecoded this AI-powered and AI-authored experiment:
-This is an AI-generated plugin, using Google's Antigravity framework. I have no idea how the LLM vectors are calculated or used to find relevant notes. It seems to work really well for me.
+This is an AI-generated plugin, using Google's [Antigravity](https://antigravity.google) framework. I have no idea how the LLM vectors are calculated or used to find relevant notes. It seems to work really well for me.
 
-My goal was to try Antimatter to see what it can do. It's simultaneously AMAZING and FRUSTRATING. But it built this thing, and I could never have done that on my own. I've been wanting a good Related Notes plugin for my Obsidian vault for years, and I finally caved in and built this.
+My goal was to try [Antigravity](https://antigravity.google) to see what it can do. It's simultaneously AMAZING and FRUSTRATING. But it built this thing, and I could never have done that on my own. I've been wanting a good Related Notes plugin for my Obsidian vault for years, and I finally caved in and built this. My goal was to let Antigravity do all of the coding - I didn't write any of it, and didn't edit anything directly. All additions, changes, bug fixes, etc. were all done through chatting with Gemini in the Antigravity interface.
 
 The plugin comes with no warranty or support. Use at your own risk. It shouldn't delete your Obsidian vault or mine bitcoin or anything else, but who knows if Gemini went rogue. I may wind up abandoning this plugin. Or I may actively develop it. Who knows?
 
