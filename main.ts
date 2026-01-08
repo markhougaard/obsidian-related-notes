@@ -150,7 +150,9 @@ class RelatedNotesSettingTab extends PluginSettingTab {
 
         // Calculate stats
         const totalFiles = this.plugin.app.vault.getMarkdownFiles().length;
-        const indexedFiles = this.plugin.searchService.vectors.length;
+        // Only count vectors that correspond to existing files
+        const currentFilePaths = new Set(this.plugin.app.vault.getMarkdownFiles().map(f => f.path));
+        const indexedFiles = this.plugin.searchService.vectors.filter(v => currentFilePaths.has(v.path)).length;
         const missingFiles = totalFiles - indexedFiles;
         const lastIndexed = this.plugin.settings.lastIndexedDate
             ? new Date(this.plugin.settings.lastIndexedDate).toLocaleString()

@@ -87,7 +87,7 @@ var RelatedNotesView = class extends import_obsidian.ItemView {
         continue;
       seenPaths.add(item.file.path);
       const itemDiv = list.createDiv({ cls: "related-note-item nav-file-title" });
-      const link = itemDiv.createEl("div", {
+      itemDiv.createEl("span", {
         text: item.file.basename,
         cls: "nav-file-title-content"
       });
@@ -98,7 +98,7 @@ var RelatedNotesView = class extends import_obsidian.ItemView {
       });
       itemDiv.addEventListener("click", (e) => {
         e.preventDefault();
-        this.app.workspace.openLinkText(item.file.path, "", false);
+        this.app.workspace.openLinkText(item.file.path, "", true);
       });
       itemDiv.addEventListener("mouseenter", () => {
         itemDiv.addClass("is-active");
@@ -692,7 +692,8 @@ var RelatedNotesSettingTab = class extends import_obsidian4.PluginSettingTab {
     containerEl.createEl("h2", { text: "Index Statistics" });
     const statsContainer = containerEl.createDiv({ cls: "index-stats-container" });
     const totalFiles = this.plugin.app.vault.getMarkdownFiles().length;
-    const indexedFiles = this.plugin.searchService.vectors.length;
+    const currentFilePaths = new Set(this.plugin.app.vault.getMarkdownFiles().map((f) => f.path));
+    const indexedFiles = this.plugin.searchService.vectors.filter((v) => currentFilePaths.has(v.path)).length;
     const missingFiles = totalFiles - indexedFiles;
     const lastIndexed = this.plugin.settings.lastIndexedDate ? new Date(this.plugin.settings.lastIndexedDate).toLocaleString() : "Never";
     const status = this.plugin.searchService.isIndexing ? "Indexing..." : "Idle";

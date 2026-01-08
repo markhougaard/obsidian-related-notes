@@ -88,7 +88,7 @@ export class RelatedNotesView extends ItemView {
             seenPaths.add(item.file.path);
 
             const itemDiv = list.createDiv({ cls: 'related-note-item nav-file-title' });
-            const link = itemDiv.createEl('div', {
+            itemDiv.createEl('span', {
                 text: item.file.basename,
                 cls: 'nav-file-title-content'
             });
@@ -102,7 +102,8 @@ export class RelatedNotesView extends ItemView {
 
             itemDiv.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.app.workspace.openLinkText(item.file.path, '', false);
+                // Open in new tab by setting the third parameter to true
+                this.app.workspace.openLinkText(item.file.path, '', true);
             });
 
             // Add hover effect
