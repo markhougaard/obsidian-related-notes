@@ -412,6 +412,22 @@ export class SemanticSearchService {
         }
     }
 
+    async searchByText(query: string, topK: number = 10): Promise<{ file: TFile; score: number }[]> {
+        const embedding = await this.generateEmbedding(query);
+        return this.vectors
+            .map(v => ({
+                path: v.path,
+                score: this.cosineSimilarity(embedding, v.embedding)
+            }))
+            .sort((a, b) => b.score - a.score)
+            .slice(0, topK)
+            .map(s => {
+                const file = this.vault.getAbstractFileByPath(s.path);
+                return file instanceof TFile ? { file, score: s.score } : null;
+            })
+            .filter((x): x is { file: TFile; score: number } => x !== null);
+    }
+
     cosineSimilarity(a: number[], b: number[]) {
         let dotProduct = 0;
         let normA = 0;
