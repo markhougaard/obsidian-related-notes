@@ -264,7 +264,8 @@ export class RelatedNotesView extends ItemView {
                     const explanation = await this.plugin.searchService.explainRelationship(activeFile, item.file);
                     explanationEl.setText(explanation);
                 } catch (err) {
-                    explanationEl.setText('Could not generate explanation.');
+                    const msg = err instanceof Error ? err.message : String(err);
+                    explanationEl.setText(`Could not generate explanation: ${msg}`);
                     console.error('Explain error:', err);
                 }
             });

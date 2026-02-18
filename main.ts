@@ -18,7 +18,7 @@ const DEFAULT_SETTINGS: RelatedNotesSettings = {
     ollamaUrl: 'http://localhost:11434',
     ollamaModel: 'nomic-embed-text',
     bearerToken: '',
-    chatModel: 'llama3.2:3b',
+    chatModel: 'llama3.1:8b',
     vectorFormat: 'json',
     maxRelatedNotes: 5,
     debugMode: false
@@ -296,9 +296,9 @@ class RelatedNotesSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Chat Model')
-            .setDesc('Ollama model used for "Why related?" explanations (e.g. llama3.2:1b). Leave blank to disable.')
+            .setDesc('Ollama model used for "Why related?" explanations (e.g. llama3.1:8b). Leave blank to disable.')
             .addText(text => text
-                .setPlaceholder('llama3.2:1b')
+                .setPlaceholder('llama3.1:8b')
                 .setValue(this.plugin.settings.chatModel)
                 .onChange(async (value) => {
                     this.plugin.settings.chatModel = value;
