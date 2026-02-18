@@ -32,6 +32,18 @@ export class SemanticSearchService {
         this.ollamaClient.setDebugMode(debugMode);
     }
 
+    setBearerToken(token: string) {
+        this.ollamaClient.setBearerToken(token);
+    }
+
+    setBaseUrl(url: string) {
+        this.ollamaClient.setBaseUrl(url);
+    }
+
+    setModel(model: string) {
+        this.ollamaClient.setModel(model);
+    }
+
     async testConnection(): Promise<boolean> {
         return await this.ollamaClient.testConnection();
     }
@@ -227,9 +239,22 @@ export class SemanticSearchService {
 
         // Remove Excalidraw JSON blocks and data sections
         clean = clean.replace(/```excalidraw[\s\S]*?```/g, '');
-        clean = clean.replace(/## Excalidraw Data[\s\S]*$/, ''); // Remove everything after this header
+        clean = clean.replace(/## Excalidraw Data[\s\S]*$/, '');
 
-        // Remove other common generated content markers if needed
+        // Strip HTML tags — web clippings are HTML-heavy and HTML is very token-dense.
+        // Stripping tags keeps the readable text while drastically reducing token count.
+        clean = clean.replace(/<[^>]+>/g, ' ');
+
+        // Decode common HTML entities
+        clean = clean.replace(/&amp;/g, '&')
+                     .replace(/&lt;/g, '<')
+                     .replace(/&gt;/g, '>')
+                     .replace(/&quot;/g, '"')
+                     .replace(/&apos;/g, "'")
+                     .replace(/&nbsp;/g, ' ');
+
+        // Collapse runs of whitespace left behind by stripped tags
+        clean = clean.replace(/\s+/g, ' ').trim();
 
         return clean;
     }

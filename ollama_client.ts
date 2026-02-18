@@ -7,6 +7,7 @@ export interface OllamaEmbeddingResponse {
 export interface OllamaConfig {
     baseUrl: string;
     model: string;
+    bearerToken?: string;
 }
 
 export class OllamaClient {
@@ -14,12 +15,32 @@ export class OllamaClient {
     private debugMode: boolean;
 
     constructor(config: OllamaConfig, debugMode: boolean = false) {
-        this.config = config;
+        this.config = { ...config, baseUrl: config.baseUrl.replace(/\/+$/, '') };
         this.debugMode = debugMode;
+    }
+
+    private authHeaders(): Record<string, string> {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (this.config.bearerToken) {
+            headers['Authorization'] = `Bearer ${this.config.bearerToken}`;
+        }
+        return headers;
     }
 
     setDebugMode(debugMode: boolean) {
         this.debugMode = debugMode;
+    }
+
+    setBearerToken(token: string) {
+        this.config.bearerToken = token;
+    }
+
+    setBaseUrl(url: string) {
+        this.config.baseUrl = url.replace(/\/+$/, '');
+    }
+
+    setModel(model: string) {
+        this.config.model = model;
     }
 
     async generateEmbedding(text: string, title?: string, retries: number = 3): Promise<number[]> {
@@ -38,9 +59,7 @@ export class OllamaClient {
                 response = await requestUrl({
                     url: url,
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: this.authHeaders(),
                     body: JSON.stringify({
                         model: this.config.model,
                         prompt: truncatedText,
@@ -65,23 +84,29 @@ export class OllamaClient {
                 const errorText = response.text;
                 if (this.debugMode) console.error(`Ollama API error (attempt ${attempt + 1}/${retries + 1}):`, errorText);
 
-                // Check if it's a transient error (EOF, connection issues)
-                if (errorText.includes('EOF') || errorText.includes('connection')) {
-                    if (attempt < retries) {
+                // Check if it's a transient error (EOF, connection issues) or context length exceeded
+                const isContextLength = errorText.includes('context length') || errorText.includes('context_length');
+                if (errorText.includes('EOF') || errorText.includes('connection') || isContextLength) {
+                    if (attempt < retries && !isContextLength) {
                         const delay = Math.pow(2, attempt) * 1000;
                         if (this.debugMode) console.log(`Transient error detected. Retrying in ${delay}ms...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
                         continue;
                     } else {
-                        // Final attempt failed with EOF. Try "Safe Mode" - drastically reduced context.
-                        if (this.debugMode) console.log('Persistent EOF error. Attempting Safe Mode (reduced context)...');
+                        // Final attempt failed, or context too long. Try "Safe Mode" - drastically reduced context.
+                        if (this.debugMode) console.log('Attempting Safe Mode (reduced context)...');
                         try {
-                            const safeLength = 2000; // Reduced to 2000 chars
-                            const safeText = sanitizedText.substring(0, safeLength);
+                            // Strip HTML tags and collapse whitespace before truncating
+                            const safeLength = 2000;
+                            const safeText = sanitizedText
+                                .replace(/<[^>]+>/g, ' ')
+                                .replace(/\s+/g, ' ')
+                                .trim()
+                                .substring(0, safeLength);
                             const safeResponse = await requestUrl({
                                 url: url,
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: this.authHeaders(),
                                 body: JSON.stringify({
                                     model: this.config.model,
                                     prompt: safeText,
@@ -109,7 +134,7 @@ export class OllamaClient {
                                 const titleResponse = await requestUrl({
                                     url: url,
                                     method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
+                                    headers: this.authHeaders(),
                                     body: JSON.stringify({
                                         model: this.config.model,
                                         prompt: `Note title: ${title}`,
@@ -155,7 +180,11 @@ export class OllamaClient {
     async testConnection(): Promise<boolean> {
         try {
             const url = `${this.config.baseUrl}/api/tags`;
-            const response = await requestUrl({ url, method: 'GET' });
+            const headers: Record<string, string> = {};
+            if (this.config.bearerToken) {
+                headers['Authorization'] = `Bearer ${this.config.bearerToken}`;
+            }
+            const response = await requestUrl({ url, method: 'GET', headers });
             return response.status === 200;
         } catch (error) {
             console.error('Ollama connection test failed:', error);
