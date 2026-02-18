@@ -8,14 +8,17 @@ export interface OllamaConfig {
     baseUrl: string;
     model: string;
     bearerToken?: string;
+    chatModel?: string;
 }
 
 export class OllamaClient {
     private config: OllamaConfig;
+    private chatModel: string;
     private debugMode: boolean;
 
     constructor(config: OllamaConfig, debugMode: boolean = false) {
         this.config = { ...config, baseUrl: config.baseUrl.replace(/\/+$/, '') };
+        this.chatModel = config.chatModel ?? '';
         this.debugMode = debugMode;
     }
 
@@ -41,6 +44,10 @@ export class OllamaClient {
 
     setModel(model: string) {
         this.config.model = model;
+    }
+
+    setChatModel(model: string) {
+        this.chatModel = model;
     }
 
     async generateEmbedding(text: string, title?: string, retries: number = 3): Promise<number[]> {
@@ -175,6 +182,34 @@ export class OllamaClient {
         }
 
         throw new Error('Failed to generate embedding after all retries');
+    }
+
+    async generateCompletion(systemPrompt: string, userPrompt: string): Promise<string> {
+        if (!this.chatModel) {
+            throw new Error('No chat model configured. Set a Chat Model in plugin settings.');
+        }
+        const url = `${this.config.baseUrl}/v1/chat/completions`;
+        const response = await requestUrl({
+            url,
+            method: 'POST',
+            headers: this.authHeaders(),
+            body: JSON.stringify({
+                model: this.chatModel,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                stream: false
+            }),
+            throw: false
+        });
+
+        if (response.status !== 200) {
+            throw new Error(`Chat API error: ${response.status} - ${response.text}`);
+        }
+
+        const data = response.json;
+        return data.choices?.[0]?.message?.content?.trim() ?? '';
     }
 
     async testConnection(): Promise<boolean> {
