@@ -184,13 +184,16 @@ export class OllamaClient {
         throw new Error('Failed to generate embedding after all retries');
     }
 
-    async generateCompletion(systemPrompt: string, userPrompt: string): Promise<string> {
+    async generateCompletion(
+        systemPrompt: string,
+        userPrompt: string,
+        onChunk?: (text: string) => void
+    ): Promise<string> {
         if (!this.chatModel) {
             throw new Error('No chat model configured. Set a Chat Model in plugin settings.');
         }
         const url = `${this.config.baseUrl}/v1/chat/completions`;
-        const response = await requestUrl({
-            url,
+        const response = await fetch(url, {
             method: 'POST',
             headers: this.authHeaders(),
             body: JSON.stringify({
@@ -199,17 +202,42 @@ export class OllamaClient {
                     { role: 'system', content: systemPrompt },
                     { role: 'user', content: userPrompt }
                 ],
-                stream: false
-            }),
-            throw: false
+                stream: true
+            })
         });
 
-        if (response.status !== 200) {
-            throw new Error(`Chat API error: ${response.status} - ${response.text}`);
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Chat API error: ${response.status} - ${text}`);
         }
 
-        const data = response.json;
-        return data.choices?.[0]?.message?.content?.trim() ?? '';
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            for (const line of chunk.split('\n')) {
+                const trimmed = line.trim();
+                if (!trimmed.startsWith('data:')) continue;
+                const data = trimmed.slice(5).trim();
+                if (data === '[DONE]') break;
+                try {
+                    const token = JSON.parse(data)?.choices?.[0]?.delta?.content;
+                    if (token) {
+                        accumulated += token;
+                        onChunk?.(accumulated);
+                    }
+                } catch {
+                    // malformed SSE line — skip
+                }
+            }
+        }
+
+        return accumulated.trim();
     }
 
     async testConnection(): Promise<boolean> {
