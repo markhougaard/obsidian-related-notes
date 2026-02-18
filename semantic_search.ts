@@ -44,6 +44,10 @@ export class SemanticSearchService {
         this.ollamaClient.setModel(model);
     }
 
+    setChatModel(model: string) {
+        this.ollamaClient.setChatModel(model);
+    }
+
     async testConnection(): Promise<boolean> {
         return await this.ollamaClient.testConnection();
     }
@@ -457,5 +461,20 @@ export class SemanticSearchService {
             const relatedFile = this.vault.getAbstractFileByPath(s.path);
             return relatedFile instanceof TFile ? { file: relatedFile, score: s.score } : null;
         }).filter((x): x is { file: TFile, score: number } => x !== null);
+    }
+
+    async explainRelationship(fileA: TFile, fileB: TFile): Promise<string> {
+        const [contentA, contentB] = await Promise.all([
+            this.vault.read(fileA),
+            this.vault.read(fileB)
+        ]);
+
+        const excerptA = this.preprocessContent(contentA).substring(0, 500);
+        const excerptB = this.preprocessContent(contentB).substring(0, 500);
+
+        const systemPrompt = 'You are a concise knowledge assistant. Answer in one sentence only.';
+        const userPrompt = `Why is note "${fileB.basename}" related to note "${fileA.basename}"?\nNote A excerpt: ${excerptA}\nNote B excerpt: ${excerptB}`;
+
+        return await this.ollamaClient.generateCompletion(systemPrompt, userPrompt);
     }
 }

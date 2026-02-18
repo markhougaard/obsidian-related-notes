@@ -194,7 +194,9 @@ export class RelatedNotesView extends ItemView {
             if (seenPaths.has(item.file.path)) continue;
             seenPaths.add(item.file.path);
 
-            const itemDiv = list.createDiv({ cls: 'related-note-item nav-file-title' });
+            const itemWrapper = list.createDiv({ cls: 'related-note-wrapper' });
+
+            const itemDiv = itemWrapper.createDiv({ cls: 'related-note-item nav-file-title' });
             itemDiv.createEl('span', {
                 text: item.file.basename,
                 cls: 'nav-file-title-content'
@@ -204,6 +206,68 @@ export class RelatedNotesView extends ItemView {
                 text: `${Math.round(item.score * 100)}%`,
                 cls: 'related-note-score',
                 attr: { style: 'margin-left: auto; color: var(--text-muted); font-size: 0.8em;' }
+            });
+
+            const explainBtn = itemDiv.createEl('button', {
+                text: '···',
+                cls: 'related-note-explain-btn',
+                attr: {
+                    title: 'Why is this related?',
+                    style: [
+                        'background: none',
+                        'border: none',
+                        'cursor: pointer',
+                        'color: var(--text-muted)',
+                        'font-size: 1em',
+                        'padding: 0 4px',
+                        'flex-shrink: 0',
+                        'margin-left: 4px',
+                        'line-height: 1',
+                    ].join('; ')
+                }
+            });
+
+            const explanationEl = itemWrapper.createDiv({
+                cls: 'related-note-explanation',
+                attr: {
+                    style: [
+                        'display: none',
+                        'font-size: 0.8em',
+                        'color: var(--text-muted)',
+                        'padding: 4px 10px 8px',
+                        'font-style: italic',
+                        'border-left: 2px solid var(--text-faint)',
+                        'margin: 0 0 4px 10px',
+                    ].join('; ')
+                }
+            });
+
+            explainBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+
+                if (explanationEl.style.display !== 'none') {
+                    explanationEl.style.display = 'none';
+                    return;
+                }
+
+                const activeFile = this.app.workspace.getActiveFile();
+                explanationEl.style.display = 'block';
+
+                if (!activeFile) {
+                    explanationEl.setText('No active note to compare against.');
+                    return;
+                }
+
+                explanationEl.setText('Thinking…');
+                try {
+                    const explanation = await this.plugin.searchService.explainRelationship(activeFile, item.file);
+                    explanationEl.setText(explanation);
+                } catch (err) {
+                    const msg = err instanceof Error ? err.message : String(err);
+                    explanationEl.setText(`Could not generate explanation: ${msg}`);
+                    console.error('Explain error:', err);
+                }
             });
 
             itemDiv.addEventListener('click', (e) => {

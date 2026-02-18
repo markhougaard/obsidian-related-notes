@@ -7,6 +7,7 @@ interface RelatedNotesSettings {
     ollamaUrl: string;
     ollamaModel: string;
     bearerToken: string;
+    chatModel: string;
     vectorFormat: 'json' | 'binary';
     lastIndexedDate?: number;
     maxRelatedNotes: number;
@@ -17,6 +18,7 @@ const DEFAULT_SETTINGS: RelatedNotesSettings = {
     ollamaUrl: 'http://localhost:11434',
     ollamaModel: 'nomic-embed-text',
     bearerToken: '',
+    chatModel: 'llama3.1:8b',
     vectorFormat: 'json',
     maxRelatedNotes: 5,
     debugMode: false
@@ -32,7 +34,8 @@ export default class RelatedNotesPlugin extends Plugin {
         const ollamaConfig: OllamaConfig = {
             baseUrl: this.settings.ollamaUrl,
             model: this.settings.ollamaModel,
-            bearerToken: this.settings.bearerToken
+            bearerToken: this.settings.bearerToken,
+            chatModel: this.settings.chatModel
         };
         this.searchService = new SemanticSearchService(this.app.vault, ollamaConfig, this.settings.vectorFormat, this.settings.debugMode);
 
@@ -288,6 +291,18 @@ class RelatedNotesSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.ollamaModel = value;
                     this.plugin.searchService.setModel(value);
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('Chat Model')
+            .setDesc('Ollama model used for "Why related?" explanations (e.g. llama3.1:8b). Leave blank to disable.')
+            .addText(text => text
+                .setPlaceholder('llama3.1:8b')
+                .setValue(this.plugin.settings.chatModel)
+                .onChange(async (value) => {
+                    this.plugin.settings.chatModel = value;
+                    this.plugin.searchService.setChatModel(value);
                     await this.plugin.saveSettings();
                 }));
 
