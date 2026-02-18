@@ -17,9 +17,12 @@ The upstream plugin only supports unauthenticated local Ollama. This fork adds:
 | Obsidian vault | `/Users/markhougaard/Library/Mobile Documents/iCloud~md~obsidian/Documents/marks/` |
 | Ollama endpoint | `https://ollama.marks.dk` |
 | Embedding model | `nomic-embed-text` |
+| Chat model | `llama3.2:3b` (swapped from `llama3.1:8b` 2026-02-18) |
 | Auth | Bearer token (stored in Obsidian plugin settings, not here) |
 
 The Ollama instance runs on the same Hetzner VPS (in Docker), fronted by Caddy which enforces bearer-token auth on all `/api/*` routes.
+
+**Claude Code runs directly on the VPS** (`/home/mark/obsidian-related-notes`), so `docker exec` commands work without SSH. The Ollama container is named `ollama`.
 
 ## File layout
 
@@ -51,7 +54,7 @@ From your laptop, SCP the two plugin files:
 ```bash
 mkdir -p "/Users/markhougaard/Library/Mobile Documents/iCloud~md~obsidian/Documents/marks/.obsidian/plugins/obsidian-related-notes/"
 
-scp root@<server-ip>:/root/obsidian-relevant-notes/{main.js,manifest.json} \
+scp root@188.245.250.0:/home/mark/obsidian-related-notes/{main.js,manifest.json} \
   "/Users/markhougaard/Library/Mobile Documents/iCloud~md~obsidian/Documents/marks/.obsidian/plugins/obsidian-related-notes/"
 ```
 
@@ -114,6 +117,19 @@ When adding CORS support to a Caddy reverse proxy that also enforces bearer-toke
    also works but is less precise.
 
 Verified working config snippet in `/opt/multisite/caddy/Caddyfile` (ollama.marks.dk block).
+
+### Ollama model management
+The Ollama Docker container (`ollama`) can hold **two models at once** given current VPS RAM:
+`nomic-embed-text` (274 MB) + one chat model. To swap the chat model, remove the old one
+first to stay within the limit, then pull the new one:
+
+```bash
+docker exec ollama ollama rm <old-model>
+docker exec ollama ollama pull <new-model>
+docker exec ollama ollama list   # verify
+```
+
+Then update **Chat Model** in Obsidian → Settings → Related Notes (propagates live, no reload).
 
 ### Docker access for Caddy reloads
 `/opt/multisite/caddy/Caddyfile` is owned by root. Mark is in the `docker` group (added via
