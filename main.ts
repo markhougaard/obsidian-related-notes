@@ -6,6 +6,7 @@ import { OllamaConfig } from './ollama_client';
 interface RelatedNotesSettings {
     ollamaUrl: string;
     ollamaModel: string;
+    bearerToken: string;
     vectorFormat: 'json' | 'binary';
     lastIndexedDate?: number;
     maxRelatedNotes: number;
@@ -15,6 +16,7 @@ interface RelatedNotesSettings {
 const DEFAULT_SETTINGS: RelatedNotesSettings = {
     ollamaUrl: 'http://localhost:11434',
     ollamaModel: 'nomic-embed-text',
+    bearerToken: '',
     vectorFormat: 'json',
     maxRelatedNotes: 5,
     debugMode: false
@@ -29,7 +31,8 @@ export default class RelatedNotesPlugin extends Plugin {
 
         const ollamaConfig: OllamaConfig = {
             baseUrl: this.settings.ollamaUrl,
-            model: this.settings.ollamaModel
+            model: this.settings.ollamaModel,
+            bearerToken: this.settings.bearerToken
         };
         this.searchService = new SemanticSearchService(this.app.vault, ollamaConfig, this.settings.vectorFormat, this.settings.debugMode);
 
@@ -260,6 +263,19 @@ class RelatedNotesSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.ollamaUrl)
                 .onChange(async (value) => {
                     this.plugin.settings.ollamaUrl = value;
+                    this.plugin.searchService.setBaseUrl(value);
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
+            .setName('Bearer token')
+            .setDesc('Optional Authorization header token for protected Ollama endpoints (leave blank for local/unauthenticated instances).')
+            .addText(text => text
+                .setPlaceholder('your-token-here')
+                .setValue(this.plugin.settings.bearerToken)
+                .onChange(async (value) => {
+                    this.plugin.settings.bearerToken = value;
+                    this.plugin.searchService.setBearerToken(value);
                     await this.plugin.saveSettings();
                 }));
 
@@ -271,6 +287,7 @@ class RelatedNotesSettingTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.ollamaModel)
                 .onChange(async (value) => {
                     this.plugin.settings.ollamaModel = value;
+                    this.plugin.searchService.setModel(value);
                     await this.plugin.saveSettings();
                 }));
 
@@ -325,7 +342,6 @@ class RelatedNotesSettingTab extends PluginSettingTab {
                         this.display();
                     }
                 }));
-
 
         new Setting(containerEl)
             .setName('Test Connection')
